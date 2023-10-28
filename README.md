@@ -10,9 +10,8 @@
 <div align="center"> <img src="https://activity-graph.herokuapp.com/graph?username=rksm2329&theme=xcode" /> </div>
 
 <div align="center"> <img src="https://github-readme-streak-stats.herokuapp.com/?user=rksm2329" /> </div>
-# My Project: [`bigInt.hpp`](https://github.com/rksm2329/heyx-code-respiratory/edit/main/bigInt.hpp)
+# My Project: [bigInt.hpp](https://github.com/rksm2329/heyx-code-respiratory/edit/main/bigInt.hpp)
 ### Code:
-```cpp
 /*
 bigInt.hpp
    by rksm2329
