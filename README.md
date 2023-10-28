@@ -1,188 +1,310 @@
-# `bigInt.h`
+# `bigInt.hpp`
 ```cpp
-#include <iostream>
+#include <bits/stdc++.h>
 
 using namespace std;
 
-namespace Int {
-using namespace std;
-const string binary_symbol = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-template <size_t Maxlen = 1000 + 3, class T1 = int> struct BigInt {
-  int len = 0, binary = 10, pm = 1;
-  T1 num[Maxlen] = {0};
-  BigInt() {}
-  BigInt(const string &s) {
-    len = s.size();
-    for (int i = 0; i < len; i++) {
-      num[i] = s[len - i - 1] - '0';
-    }
+namespace Integer {
+const string symbol = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+template <size_t kMaxLength, int binary, typename T> struct BigInt {
+  T n, a[kMaxLength];
+  bool f;
+  BigInt() { Init(); }
+  T &operator[](int i) { return a[i]; }
+  void Init() {
+    n = f = 1;
+    fill(a, a + kMaxLength, 0);
   }
-  BigInt(const BigInt &b) {
-    len = b.len;
-    for (int i = 0; i < len; i++) {
-      num[i] = b.num[i];
-    }
-  }
-  friend istream &operator>>(istream &is, BigInt &a) {
+  friend istream &operator>>(istream &tempStream, BigInt &a) {
     string s;
-    is >> s;
-    a.len = s.size();
+    tempStream >> s;
+    a.n = s.size();
     if (s[0] == '-') {
-      a.pm = -1;
-      a.len--, s.erase(0, 1);
+      a.f = 0;
+      a.n--, s.erase(0, 1);
     }
-    for (int i = 0; i < a.len; i++) {
-      if (s[a.len - i - 1] >= 'A' && s[a.len - i - 1] <= 'Z') {
-        a[i] = s[a.len - i - 1] - 'A' + 10;
-      } else {
-        a[i] = s[a.len - i - 1] - '0';
-      }
+    for (int i = 0; i < a.n; i++) {
+      a[i] = (s[a.n - i - 1] >= 'A' && s[a.n - i - 1] <= 'Z'
+                  ? s[a.n - i - 1] - 'A' + 10
+                  : s[a.n - i - 1] - '0');
     }
-    return is;
+    return tempStream;
   }
-  friend ostream &operator<<(ostream &is, BigInt a) {
-    for (; a.len > 1 && !a[a.len - 1]; a.len--)
-      ;
-    if (a.pm == -1) {
+  friend ostream &operator<<(ostream &tempStream, BigInt a) {
+    for (; a.n > 1 && !a[a.n - 1]; a.n--) {
+    }
+    if (!a.f) {
       cout << '-';
     }
-    for (int i = a.len - 1; i >= 0; i--) {
-      is << binary_symbol[a[i]];
+    for (int i = a.n - 1; i >= 0; i--) {
+      tempStream << symbol[a[i]];
     }
-    return is;
+    return tempStream;
   }
-  T1 &operator[](int i) { return num[i]; }
-  void operator=(const BigInt &b) {
-    len = b.len;
-    for (int i = 0; i < len; i++) {
-      num[i] = b.num[i];
+  void operator=(int x) {
+    Init();
+    if (!x) {
+      return;
+    }
+    if (x < 0) {
+      x = -x, f = 0;
+    }
+    n = 0;
+    while (x) {
+      a[n++] = x % binary;
+      x /= binary;
     }
   }
-  bool operator<(const BigInt &b) {
-    if (len != b.len) {
-      return len < b.len;
+  void operator=(string x) {
+    Init();
+    int st = 0;
+    if (x[0] == '-') {
+      f = 0, st++;
     }
-    for (int i = len - 1; i >= 0; i--) {
-      if (num[i] != b.num[i]) {
-        return num[i] < b.num[i];
+    n = 0;
+    int len = x.size();
+    for (int i = st; i < len; i++) {
+      a[n++] = x[len - i - 1] - '0';
+    }
+  }
+  void operator=(BigInt x) {
+    Init();
+    n = x.n;
+    f = x.f;
+    for (int i = 0; i < n; i++) {
+      a[i] = x[i];
+    }
+  }
+  bool operator==(BigInt x) {
+    if (n != x.n) {
+      return 0;
+    }
+    for (int i = n - 1; i >= 0; i++) {
+      if (a[i] != x[i]) {
+        return 0;
       }
     }
-    return 0;
+    return 1;
   }
-  void operator++() {
-    num[0]++;
-    for (int i = 0; i < len - 1; i++) {
-      num[i + 1] += num[i] / binary;
-      num[i] %= binary;
-    }
-  }
-  void operator--() {
-    num[0]--;
-    for (int i = 0; i < len - 1; i++) {
-      if (num[i] < 0) {
-        num[i] += binary, num[i + 1]--;
+  bool operator!=(BigInt x) { return !operator==(x); }
+  bool operator<(BigInt x) {
+    if (n == x.n) {
+      for (int i = n - 1; i >= 0; i--) {
+        if (a[i] != x[i]) {
+          return a[i] < x[i];
+        }
       }
     }
+    return n < x.n;
   }
-  BigInt operator+(const BigInt &b) {
-    BigInt<Maxlen> c;
-    c.len = max(len, b.len) + 1;
-    for (int i = 0; i < c.len; i++) {
-      c[i] = num[i] + b.num[i];
-    }
-    for (int i = 0; i < c.len - 1; i++) {
-      c[i + 1] += c[i] / binary;
-      c[i] %= binary;
-    }
-    return c;
-  }
-  BigInt operator-(const BigInt &b) {
-    if (*this < b) {
-      cout << '-';
-      BigInt tmp = b;
-      return tmp - *this;
-    }
-    BigInt<Maxlen> c;
-    c.len = len;
-    for (int i = 0; i < c.len; i++) {
-      c[i] = num[i] - b.num[i];
-    }
-    for (int i = 0; i < c.len - 1; i++) {
-      if (c[i] < 0) {
-        c[i] += binary, c[i + 1]--;
+  bool operator>(BigInt x) {
+    if (n == x.n) {
+      for (int i = n - 1; i >= 0; i--) {
+        if (a[i] != x[i]) {
+          return a[i] > x[i];
+        }
       }
     }
-    return c;
+    return n > x.n;
   }
-  BigInt operator*(const T1 &b) {
-    BigInt<Maxlen> c;
-    c.len = len + 19;
-    for (int i = 0; i < len; i++) {
-      c[i] += num[i] * b;
+  bool operator<=(BigInt x) { return !operator>(x); }
+  bool operator>=(BigInt x) { return !operator<(x); }
+  bool operator!() {
+    if (n != 1) {
+      return 0;
     }
-    for (int i = 0; i < c.len - 1; i++) {
-      c[i + 1] += c[i] / binary;
-      c[i] %= binary;
-    }
-    return c;
+    return !a[0];
   }
-  BigInt operator*(const BigInt &b) {
-    BigInt<Maxlen> c;
-    c.pm = (pm == b.pm ? 1 : -1);
-    c.len = len + b.len + 1;
-    for (int i = 0; i < len; i++) {
-      for (int j = 0; j < b.len; j++) {
-        c[i + j] += num[i] * b.num[j];
+  bool operator==(int x) {
+    BigInt y;
+    y = x;
+    return operator==(y);
+  }
+  bool operator!=(int x) {
+    BigInt y;
+    y = x;
+    return operator!=(y);
+  }
+  bool operator<(int x) {
+    BigInt y;
+    y = x;
+    return operator<(y);
+  }
+  bool operator>(int x) {
+    BigInt y;
+    y = x;
+    return operator>(y);
+  }
+  bool operator<=(int x) {
+    BigInt y;
+    y = x;
+    return operator<=(y);
+  }
+  bool operator>=(int x) {
+    BigInt y;
+    y = x;
+    return operator>=(y);
+  }
+  BigInt ChangeBinary(BigInt &num) {
+    BigInt ans;
+    ans[0] = 0, ans.n = 1;
+    for (int i = 0; i < num.n; i++) {
+      ans = ans * binary;
+      ans = ans + num[i];
+    }
+    num.n = ans.n;
+    return ans;
+  }
+  BigInt operator+(BigInt x) {
+    BigInt y;
+    y.n = max(n, x.n);
+    int s = 0;
+    for (int i = 0; i < y.n; i++) {
+      s += a[i] + x.a[i];
+      y.a[i] = s % binary;
+      s /= binary;
+    }
+    for (; s; s /= binary) {
+      y.a[y.n++] += s % binary;
+    }
+    return y;
+  }
+  void operator+=(BigInt x) {
+    BigInt z = *this;
+    *this = z + x;
+  }
+  void operator+=(int x) {
+    BigInt z = *this;
+    *this = z + x;
+  }
+  BigInt operator+(int x) {
+    BigInt y;
+    y = x;
+    return operator+(y);
+  }
+  BigInt operator-(BigInt x) {
+    BigInt y, z = *this;
+    if (z < x) {
+      y.f = 0, swap(z, x);
+    }
+    y.n = z.n;
+    for (int i = 0; i < y.n; i++) {
+      if (z.a[i] < x[i]) {
+        z[i + 1]--;
+        z[i] += binary;
+      }
+      y[i] = z[i] - x[i];
+    }
+    for (; !y[y.n - 1] && y.n > 1; y.n--) {
+    }
+    return y;
+  }
+  void operator-=(BigInt x) {
+    BigInt z = *this;
+    *this = z - x;
+  }
+  void operator-=(int x) {
+    BigInt z = *this;
+    *this = z - x;
+  }
+  BigInt operator-(int x) {
+    BigInt y;
+    y = x;
+    return operator-(y);
+  }
+  BigInt operator*(BigInt x) {
+    BigInt y;
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < x.n; j++) {
+        y[i + j] += a[i] * x[j];
       }
     }
-    for (int i = 0; i < c.len - 1; i++) {
-      c[i + 1] += c[i] / binary;
-      c[i] %= binary;
+    y.n = n + x.n;
+    for (int i = 0; i < y.n - 1; i++) {
+      y[i + 1] += y[i] / binary, y[i] %= binary;
     }
-    return c;
+    for (; !y.a[y.n - 1] && y.n > 1; y.n--) {
+    }
+    return y;
   }
-  BigInt operator/(const T1 &b) {
-    BigInt<Maxlen, T1> c;
-    T1 r = 0;
-    c.len = len;
-    for (int i = len - 1; i >= 0; i--) {
-      r = r * binary + num[i];
-      c[i] = r / b;
-      r %= b;
-    }
-    return c;
+  void operator*=(BigInt x) {
+    BigInt z = *this;
+    *this = z * x;
   }
-  T1 operator%(const T1 &b) {
-    T1 r = 0;
-    for (int i = len - 1; i >= 0; i--) {
-      r = r * binary + num[i];
-      r %= b;
+  void operator*=(int x) {
+    BigInt z = *this;
+    *this = z * x;
+  }
+  BigInt operator*(int x) {
+    BigInt y;
+    y = x;
+    return operator*(y);
+  }
+  BigInt operator/(BigInt x) {
+    BigInt y, z = *this;
+    if (x == y) {
+      return x;
     }
-    return r;
-  }   
+    if (binary != 10) {
+      x = ChangeBinary(x), z = ChangeBinary(z);
+    }
+    y.n = z.n - x.n + 1;
+    for (int i = y.n - 1; i >= 0; i--) {
+      BigInt t = x << i;
+      for (; z >= t; z -= t) {
+        y.a[i]++;
+      }
+    }
+    for (; !y.a[y.n - 1] && y.n > 1; y.n--) {
+    }
+    return y;
+  }
+  void operator/=(BigInt x) {
+    BigInt z = *this;
+    *this = z / x;
+  }
+  void operator/=(int x) {
+    BigInt z = *this;
+    *this = z / x;
+  }
+  BigInt operator/(int x) {
+    BigInt y;
+    y = x;
+    return operator/(y);
+  }
+  BigInt operator%(BigInt x) {
+    BigInt z = *this;
+    return z - z / x * x;
+  }
+  void operator%=(BigInt x) {
+    BigInt z = *this;
+    *this = z % x;
+  }
+  void operator%=(int x) {
+    BigInt z = *this;
+    *this = z % x;
+  }
+  BigInt operator%(int x) {
+    BigInt y;
+    y = x;
+    return operator%(y);
+  }
+  BigInt operator<<(int l) {
+    BigInt x;
+    for (int i = 0; i < n; i++) {
+      x[i + l] = a[i];
+    }
+    x.n = n + l;
+    return x;
+  }
+  BigInt operator>>(int l) {
+    BigInt x;
+    x.n = n - l;
+    for (int i = 0; i < x.n; i++) {
+      x[i] = a[i + l];
+    }
+    return x;
+  }
 };
-
-template <size_t len> void Input(BigInt<len> &a) {
-  string s;
-  cin >> s;
-  a.len = s.size();
-  for (int i = 0; i < a.len; i++) {
-    if (s[a.len - i - 1] >= 'A' && s[a.len - i - 1] <= 'Z') {
-      a[i] = s[a.len - i - 1] - 'A' + 10;
-    } else {
-      a[i] = s[a.len - i - 1] - '0';
-    }
-  }
-}
-
-template <size_t len> void Output(BigInt<len> &a) {
-  for (; a.len > 1 && !a[a.len - 1]; a.len--)
-    ;
-  for (int i = a.len - 1; i >= 0; i--) {
-    cout << binary_symbol[a[i]];
-  }
-}
-}; // namespace Int
-
-using namespace Int;
+}; // namespace Integer
 ```
