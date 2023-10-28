@@ -1,5 +1,10 @@
 # `bigInt.hpp`
 ```cpp
+/*
+bigInt.hpp
+   by rksm2329
+     -让大整数能像 int, long long 那样简便的使用。
+*/
 #include <bits/stdc++.h>
 
 using namespace std;
